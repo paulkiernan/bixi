@@ -35,8 +35,7 @@ def simulator():
     return render_template('bixi.html')
 
 
-if __name__ == "__main__":
-
+def main():
     argument_parser = argparse.ArgumentParser(
         description=(
             "BIXI909 Webserver. Basic program for serving static assets for "
@@ -65,3 +64,6 @@ if __name__ == "__main__":
         server.serve_forever()
     else:
         APP.run()
+
+if __name__ == "__main__":
+    main()
