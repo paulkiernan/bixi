@@ -59,31 +59,6 @@
 <script type="text/javascript" src="static/js/lib/threejs/controls/OrbitControls.js" ></script>
 <script type="text/javascript" src="static/js/lib/threejs/ColladaLoader2.js" ></script>
 
-<script id="vertexShader" type="x-shader/x-vertex">
-    // Custom vertex shader
-    uniform vec3 viewVector;
-    uniform float c;
-    uniform float p;
-    varying float intensity;
-    void main() {
-        vec3 vNormal = normalize( normalMatrix * normal );
-        vec3 vNormel = normalize( normalMatrix * viewVector );
-        intensity = pow( c - dot(vNormal, vNormel), p );
-
-        gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );
-    }
-</script>
-
-<script id="fragmentShader" type="x-shader/x-vertex"> 
-    // Fragment shader, a.k.a. pixel shader
-    uniform vec3 glowColor;
-    varying float intensity;
-    void main() {
-        vec3 glow = glowColor * intensity;
-        gl_FragColor = vec4( glow, 1.0 );
-    }
-</script>
-
 </head>
 <body>
     <div id="caption"></div>
@@ -108,6 +83,8 @@ var materialOff   = new THREE.SpriteMaterial({ map: textureOff,   color: 0xfffff
 
 var s = 40;
 var s2 = 15;
+var delay = 0;
+var led_index = 0;
 
 init();
 animate();
@@ -153,27 +130,6 @@ function init(){
                     // to the LED_ARRAY object we use for controlling LED
                     // patterns
                     var randomColor = Math.random() * 0xffffff;
-                    var ledLight = new THREE.PointLight(randomColor, 10, 2);
-                    /*
-                    var customMaterial = new THREE.ShaderMaterial({
-                        uniforms: {
-                            "c": { type: "f", value: 0.1 },
-                            "p": { type: "f", value: 0.7 },
-                            glowColor: { type: "c", value: new THREE.Color(randomColor) },
-                            viewVector: { type: "v3", value: camera.position }
-                        },
-                        vertexShader: document.getElementById( 'vertexShader'   ).textContent,
-                        fragmentShader: document.getElementById( 'fragmentShader' ).textContent,
-                        side: THREE.FrontSide,
-                        blending: THREE.AdditiveBlending,
-                        transparent: false
-                    });
-                    */
-                    var customMaterial = new THREE.MeshStandardMaterial( {
-                        emissive: randomColor,
-                        emissiveIntensity: 10,
-                        color: randomColor
-                    });
 
                     var sprite = new THREE.Sprite(materialOff);
                     sprite.position.copy(led.position);
@@ -185,8 +141,11 @@ function init(){
                     sprite.scale.set(s, s, s);
                     scene.add(sprite);
 
-                    // Swap sketchup's material for this one
-                    led.material = customMaterial;
+                    var light = new THREE.PointLight(randomColor, 0.0, 700);
+                    light.position.copy(led.position);
+                    scene.add(light);
+
+                    led.material = new THREE.MeshLambertMaterial({color: randomColor});
 
                     // Ideally we've defined the LED array correctly in the
                     // sketchup model such that each has a unique index. Here
@@ -195,9 +154,10 @@ function init(){
                     // responsibility for mainting the 
                     if (LED_ARRAY[thisIndex] === undefined) {
                         LED_ARRAY[thisIndex] = {
-                            'material': customMaterial,
+                            'index': thisIndex,
                             'mesh': led,
-                            'light': ledLight
+                            'light': light,
+                            'sprite': sprite
                         }
                     }
                     else {
@@ -214,14 +174,7 @@ function init(){
                 }
                 else {
                     var led = LED_ARRAY[i];
-                    led.light.name = led.mesh.name;
-                    led.mesh.add(led.light);
-                    led.light.position.copy(led.mesh.position);
-                    led.mesh.material.needsUpdate = true;
-                    scene.add(led.light);
-
-                    console.log(led.mesh);
-                    console.log(led.light);
+                    //dangerous led.light.add(led.mesh);
                 }
             }
 
@@ -279,8 +232,21 @@ function animate(){
 }
 
 function render() {
+    //do {
+    led_index  = led_strip_animation(led_index);
+    //} while (delay == 0);
     renderer.render( scene, camera );
 }
+
+function led_strip_animation(led_index) {
+    return updateLED(LED_ARRAY[led_index]);
+}
+
+function updateLED(led) {
+    led.mesh.material.color.setHex(Math.random() * 0xffffff);
+    return (led.index + 1) % LED_ARRAY.length;
+}
+
 
     </script>
 
