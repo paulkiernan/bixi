@@ -35,6 +35,11 @@ def simulator():
     return render_template('bixi.html')
 
 
+@APP.route('/meow')
+def meow():
+    return render_template('meow.html')
+
+
 def main():
     argument_parser = argparse.ArgumentParser(
         description=(
