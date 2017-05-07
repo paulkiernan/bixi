@@ -133,15 +133,9 @@ function init(){
             ledGlow.scale.set(s, s, s);
             scene.add(ledGlow);
 
-            var light = new THREE.PointLight(0x0000ff, 0.0, 700);
-            light.intensity = 0;
-            light.position.set(offset_x + d*x, offset_y, offset_z + d*z);
-            scene.add(light);
-
             LED_ARRAY.push({
                 'source': ledSource,
                 'glow': ledGlow,
-                'light': light,
                 'state': 'off'
             });
         }
@@ -175,7 +169,7 @@ function render() {
 }
 
 function toggle_led() {
-    for (var i=0; i < 0.05 * LED_ARRAY.length; i++) {
+    for (var i=0; i < 0.15 * LED_ARRAY.length; i++) {
         // toggle a random 10% of the LEDs
         var randomIndex = Math.floor(Math.random()*LED_ARRAY.length);
         var led = LED_ARRAY[randomIndex];
@@ -191,9 +185,6 @@ function toggle_led() {
             led.glow.material.opacity = 1;
             led.glow.material.color.setHex(color);
 
-            led.light.intensity = 1.0;
-            led.light.color.setHex(led.glow.material.color.getHex());
-
             led.state='on';
         }
         else {
@@ -202,9 +193,6 @@ function toggle_led() {
             var hsl = led.source.material.color.getHSL();
             led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
             led.glow.material.color.setHex(color);
-
-            var mixinColor = led.glow.material.color.clone();
-            led.light.color.set(mixinColor);
         }
     }
 }
