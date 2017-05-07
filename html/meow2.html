@@ -54,7 +54,7 @@ var container, stats;
 var camera, scene, renderer, controls;
 
 var LED_DISTANCE = 40;
-var LED_ARRAY_LENGTH = 5000;
+var LED_ARRAY_LENGTH = 4000;
 var LED_ARRAY = [];
 
 var textureGlow  = THREE.ImageUtils.loadTexture('static/img/led1.png');
@@ -133,23 +133,19 @@ function init(){
             ledGlow.scale.set(s, s, s);
             scene.add(ledGlow);
 
+            var light = new THREE.PointLight(0x0000ff, 0.0, 700);
+            light.intensity = 0;
+            light.position.set(offset_x + d*x, offset_y, offset_z + d*z);
+            scene.add(light);
+
             LED_ARRAY.push({
                 'source': ledSource,
                 'glow': ledGlow,
+                'light': light,
                 'state': 'off'
             });
-
-            console.log(LED_ARRAY.length);
         }
     }
-
-    // Add lighting
-    var ambientLight = new THREE.AmbientLight(0xcccccc);
-    scene.add(ambientLight);
-
-    var directionalLight = new THREE.DirectionalLight(0xffffff);
-    directionalLight.position.set(0, 1, -1).normalize();
-    scene.add(directionalLight);
 
     // Add resize callback
     window.addEventListener('resize', onWindowResize, false);
@@ -179,25 +175,36 @@ function render() {
 }
 
 function toggle_led() {
-    for (var i=0; i < 0.1 * LED_ARRAY.length; i++) {
+    for (var i=0; i < 0.05 * LED_ARRAY.length; i++) {
         // toggle a random 10% of the LEDs
         var randomIndex = Math.floor(Math.random()*LED_ARRAY.length);
         var led = LED_ARRAY[randomIndex];
         if (led.state == 'off') {
+            // turn on the LED
             var color = 0xffffff;
-            var sprite = led.source;
-            sprite.material = materialPoint.clone();
-            sprite.material.color.setHex(color);
-            var hsl = sprite.material.color.getHSL();
-            sprite.material.color.setHSL(hsl.h, hsl.s, 0.7);
+
+            led.source.material = materialPoint.clone();
+            led.source.material.color.setHex(color);
+            var hsl = led.source.material.color.getHSL();
+            led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
+
+            led.glow.material.opacity = 1;
+            led.glow.material.color.setHex(color);
+
+            led.light.intensity = 1.0;
+            led.light.color.setHex(led.glow.material.color.getHex());
+
             led.state='on';
         }
         else {
-            var sprite = led.source;
             var color = Math.random() * 0xffffff;
-            sprite.material.color.setHex(color);
-            var hsl = sprite.material.color.getHSL();
-            sprite.material.color.setHSL(hsl.h, hsl.s, 0.7);
+            led.source.material.color.setHex(color);
+            var hsl = led.source.material.color.getHSL();
+            led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
+            led.glow.material.color.setHex(color);
+
+            var mixinColor = led.glow.material.color.clone();
+            led.light.color.set(mixinColor);
         }
     }
 }
