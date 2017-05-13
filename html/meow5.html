@@ -6,8 +6,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
 
-<meta property="og:url"         content="http://bixi.life/meow4.html" />
-<meta property="og:title"       content="BIXI909: Simulator - Experiment 4 (GPU Pipelines)" />
+<meta property="og:url"         content="http://bixi.life/meow5.html" />
+<meta property="og:title"       content="BIXI909: Simulator - Experiment 5 (Buffered Geometry + CSV loading)" />
 <meta property="og:description" content="Moonwalk Mission 2017" />
 <meta property="og:image"       content="http://bixi.life/static/img/bixi.jpg" />
 
@@ -107,8 +107,7 @@ var materialGlow  = new THREE.SpriteMaterial({ map: textureGlow,  color: 0x0, tr
 var materialPoint = new THREE.SpriteMaterial({ map: texturePoint, color: 0x0, transparent: true } );
 var materialOff   = new THREE.SpriteMaterial({ map: textureOff,   color: 0xffffff, transparent: true, opacity: 0.2} );
 
-var s = 40;
-var s2 = 15;
+var ledOutlineSize = 10;
 
 var loadingMessage = false;
 var csv_loaded = false;
@@ -219,7 +218,7 @@ function init(){
             positions[ i3 + 1 ] = offset_y;
             positions[ i3 + 2 ] = offset_z + d*z;
 
-            color.setHSL( i / LED_ARRAY_LENGTH, 1.0, 0.5 );
+            //color.setHSL( i / LED_ARRAY_LENGTH, 1.0, 0.5 );
 
             colors[ i3 + 0 ] = color.r;
             colors[ i3 + 1 ] = color.g;
@@ -229,7 +228,7 @@ function init(){
 
             var ledSource = new THREE.Sprite(materialOff);
             ledSource.position.set(offset_x + d*x, offset_y, offset_z + d*z);
-            ledSource.scale.set(s2, s2, s2);
+            ledSource.scale.set(ledOutlineSize, ledOutlineSize, ledOutlineSize);
             scene.add(ledSource);
 
             i += 1;
@@ -248,7 +247,8 @@ function init(){
     window.addEventListener('resize', onWindowResize, false);
 
     // Load the CSV
-    Papa.parse("/static/light_patterns/sim.csv", {
+    Papa.parse("/static/light_patterns/sim2.csv", {
+        dynamicTyping: true,
         worker: true,
         download: true,
         complete: function(results) {
@@ -273,12 +273,16 @@ function animate(){
     requestAnimationFrame(animate);
 
     if (csv_loaded) {
-        var time = Date.now() * 0.005;
-        var sizes = ledGeometry.attributes.size.array;
-        for ( var i = 0; i < LED_ARRAY_LENGTH; i++ ) {
-            sizes[ i ] = 200 * ( 1 + Math.sin( 0.1 * i + time ) );
-        }
-        ledGeometry.attributes.size.needsUpdate = true;
+
+        if (csv_row_index == 0 || csv_row_index >= csv_results.data.length) csv_row_index = 1;
+        this_color_row = csv_results.data[csv_row_index]
+
+        // Copy CSV RGB color array into Float32 color buffer...
+        var colors = ledGeometry.attributes.customColor.array;
+        colors.set(this_color_row);
+        ledGeometry.attributes.customColor.needsUpdate = true;
+
+        csv_row_index += 1;
 
     }
     else {
