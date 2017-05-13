@@ -81,6 +81,9 @@
 <script type="text/javascript" src="static/js/lib/threejs/Detector.js" ></script>
 <script type="text/javascript" src="static/js/lib/threejs/controls/OrbitControls.js" ></script>
 
+<!--CSV Parsing Deps-->
+<script type="text/javascript" src="static/js/lib/papa/papaparse.min.js" ></script>
+
 </head>
 <body>
     <div id="caption"></div>
@@ -108,6 +111,9 @@ var s = 40;
 var s2 = 15;
 
 var loadingMessage = false;
+var csv_loaded = false;
+var csv_results;
+var csv_row_index = 0;
 
 var ledGeometry;
 var particleSystem;
@@ -240,6 +246,18 @@ function init(){
 
     // Add resize callback
     window.addEventListener('resize', onWindowResize, false);
+
+    // Load the CSV
+    Papa.parse("/static/light_patterns/sim.csv", {
+        worker: true,
+        download: true,
+        complete: function(results) {
+            csv_loaded = true;
+            csv_results = results;
+            console.log("CSV light patterns loaded!");
+            clearMessages();
+        }
+    });
 }
 
 function onWindowResize() {
@@ -254,12 +272,21 @@ function onWindowResize() {
 function animate(){
     requestAnimationFrame(animate);
 
-    var time = Date.now() * 0.005;
-    var sizes = ledGeometry.attributes.size.array;
-    for ( var i = 0; i < LED_ARRAY_LENGTH; i++ ) {
-        sizes[ i ] = 200 * ( 1 + Math.sin( 0.1 * i + time ) );
+    if (csv_loaded) {
+        var time = Date.now() * 0.005;
+        var sizes = ledGeometry.attributes.size.array;
+        for ( var i = 0; i < LED_ARRAY_LENGTH; i++ ) {
+            sizes[ i ] = 200 * ( 1 + Math.sin( 0.1 * i + time ) );
+        }
+        ledGeometry.attributes.size.needsUpdate = true;
+
     }
-    ledGeometry.attributes.size.needsUpdate = true;
+    else {
+        if (!loadingMessage) {
+            displayMessage("CSV file is loading...");
+            loadingMessage = true;
+        }
+    }
 
     render();
 
