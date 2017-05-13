@@ -75,7 +75,7 @@ var container, stats;
 var camera, scene, renderer, controls;
 
 var LED_DISTANCE = 40;
-var LED_ARRAY_LENGTH = 4655;
+var LED_ARRAY_LENGTH = 4656;
 var LED_ARRAY = [];
 
 var textureGlow  = THREE.ImageUtils.loadTexture('static/img/led1.png');
@@ -92,20 +92,21 @@ var s2 = 15;
 var loadingMessage = false;
 var csv_loaded = false;
 var csv_results;
+var csv_row_index = 0;
 
 init();
 animate();
 
-function displayError(errorText) {
+function displayMessage(errorText) {
     var errorDiv = document.getElementById('caption');
     var newSpan = document.createElement('span');
-    var error = "ERROR: " + errorText;
+    var error = errorText;
     newSpan.appendChild(document.createTextNode(error));
     errorDiv.appendChild(newSpan);
     console.log(error);
 }
 
-function clearErrors() {
+function clearMessages() {
     var errorDiv = document.getElementById('caption');
     errorDiv.outerHTML = "";
     delete errorDiv;
@@ -192,7 +193,7 @@ function init(){
             csv_loaded = true;
             csv_results = results;
             console.log("CSV light patterns loaded!");
-            clearErrors();
+            clearMessages();
         }
     });
 }
@@ -210,19 +211,18 @@ function animate(){
     requestAnimationFrame(animate);
 
     if (csv_loaded) {
-        leds_to_change = []
-        colors_to_apply = []
-        for (var i=0; i < 0.15 * LED_ARRAY.length; i++) {
-            // toggle a random 10% of the LEDs
-            var randomIndex = Math.floor(Math.random()*LED_ARRAY.length);
-            leds_to_change.push(LED_ARRAY[randomIndex]);
-            colors_to_apply.push(Math.random() * 0xffffff);
-            toggle_led(leds_to_change[i], colors_to_apply[i]);
+
+        if (csv_row_index == 0 || csv_row_index >= csv_results.data.length) csv_row_index = 1;
+        this_color_row = csv_results.data[csv_row_index]
+        for (var i=1; i<this_color_row.length; i++) {
+            toggle_led(LED_ARRAY[i-1], this_color_row[i]);
         }
+        csv_row_index += 1;
+
     }
     else {
         if (!loadingMessage) {
-            displayError("CSV file is loading...");
+            displayMessage("CSV file is loading...");
             loadingMessage = true;
         }
     }
@@ -244,24 +244,23 @@ function toggle_led(led, color) {
      */
     if (led.state == 'off') {
         // turn on the LED
-        var color = 0xffffff;
+        var initColor = 0xffffff;
 
         led.source.material = materialPoint.clone();
-        led.source.material.color.setHex(color);
+        led.source.material.color.setHex(initColor);
         var hsl = led.source.material.color.getHSL();
         led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
 
         led.glow.material.opacity = 1;
-        led.glow.material.color.setHex(color);
+        led.glow.material.color.setHex(initColor);
 
         led.state='on';
     }
-    else {
-        led.source.material.color.setHex(color);
-        var hsl = led.source.material.color.getHSL();
-        led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
-        led.glow.material.color.setHex(color);
-    }
+
+    led.source.material.color.setHex(color);
+    var hsl = led.source.material.color.getHSL();
+    led.source.material.color.setHSL(hsl.h, hsl.s, 0.7);
+    led.glow.material.color.setHex(color);
 }
 
     </script>
