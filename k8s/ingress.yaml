@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    field.cattle.io/description: Moonwalk Mission fun
+  name: bixi-life-ingress
+  namespace: bixi-life
+spec:
+  rules:
+  - host: bixi.life
+    http:
+      paths:
+      - backend:
+          serviceName: bixi-life-service
+          servicePort: 80
+        path: /
+        pathType: Prefix
+  - host: new.bixi.life
+    http:
+      paths:
+      - backend:
+          serviceName: bixi-life-service
+          servicePort: 80
+        path: /
+        pathType: Prefix
