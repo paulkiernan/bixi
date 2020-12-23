@@ -17,7 +17,7 @@ spec:
           servicePort: 80
         path: /
         pathType: Prefix
-  - host: new.bixi.life
+  - host: bixi.paulynomial.com
     http:
       paths:
       - backend:
@@ -28,5 +28,5 @@ spec:
   tls:
   - hosts:
     - bixi.life
-    - new.bixi.life
+    - bixi.paulynomial.com
     secretName: bixi-ingress-prod-tls
