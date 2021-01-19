@@ -37,4 +37,5 @@ spec:
   - hosts:
     - bixi.life
     - bixi.paulynomial.com
+    - www.bixi.life
     secretName: bixi-ingress-prod-tls
