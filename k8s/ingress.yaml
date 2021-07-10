@@ -9,22 +9,6 @@ metadata:
   namespace: bixi-life
 spec:
   rules:
-  - host: bixi.life
-    http:
-      paths:
-      - backend:
-          serviceName: bixi-life-service
-          servicePort: 80
-        path: /
-        pathType: Prefix
-  - host: www.bixi.life
-    http:
-      paths:
-      - backend:
-          serviceName: bixi-life-service
-          servicePort: 80
-        path: /
-        pathType: Prefix
   - host: bixi.paulynomial.com
     http:
       paths:
@@ -35,7 +19,5 @@ spec:
         pathType: Prefix
   tls:
   - hosts:
-    - bixi.life
     - bixi.paulynomial.com
-    - www.bixi.life
     secretName: bixi-ingress-prod-tls
